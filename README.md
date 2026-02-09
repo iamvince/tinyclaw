@@ -5,6 +5,7 @@ Minimal multi-channel AI assistant with WhatsApp integration and queue-based arc
 ## 🎯 What is TinyClaw?
 
 TinyClaw is a lightweight wrapper around [Claude Code](https://claude.com/claude-code) that:
+
 - ✅ Connects WhatsApp (via QR code)
 - ✅ Processes messages sequentially (no race conditions)
 - ✅ Maintains conversation context
@@ -91,7 +92,8 @@ Scan it with your phone. **Done!** 🎉
 
 ### Test It
 
-Send a WhatsApp message to yourself:
+Send a WhatsApp message to yourself from a different WhatsApp account:
+
 ```
 "Hello Claude!"
 ```
@@ -127,23 +129,27 @@ You'll get a response! 🤖
 ## 🔧 Components
 
 ### 1. whatsapp-client.js
+
 - Connects to WhatsApp via QR code
 - Writes incoming messages to queue
 - Reads responses from queue
 - Sends replies back
 
 ### 2. queue-processor.js
+
 - Polls incoming queue
 - Processes **ONE message at a time**
 - Calls `claude -c -p`
 - Writes responses to outgoing queue
 
 ### 3. heartbeat-cron.sh
+
 - Runs every 5 minutes
 - Sends heartbeat via queue
 - Keeps conversation active
 
 ### 4. tinyclaw.sh
+
 - Main orchestrator
 - Manages tmux session
 - CLI interface
@@ -192,11 +198,13 @@ tinyclaw/
 ## 🔄 Reset Conversation
 
 ### Via CLI
+
 ```bash
 ./tinyclaw.sh reset
 ```
 
 ### Via WhatsApp
+
 Send: `!reset` or `/reset`
 
 Next message starts fresh (no conversation history).
@@ -206,6 +214,7 @@ Next message starts fresh (no conversation history).
 ### Heartbeat Interval
 
 Edit `heartbeat-cron.sh`:
+
 ```bash
 INTERVAL=300  # seconds (5 minutes)
 ```
@@ -213,8 +222,10 @@ INTERVAL=300  # seconds (5 minutes)
 ### Heartbeat Prompt
 
 Edit `.tinyclaw/heartbeat.md`:
+
 ```markdown
 Check for:
+
 1. Pending tasks
 2. Errors
 3. Unread messages
@@ -255,6 +266,7 @@ watch -n 1 'ls -lh .tinyclaw/queue/outgoing/'
 ### ✅ No Race Conditions
 
 Messages processed **sequentially**, one at a time:
+
 ```
 Message 1 → Process → Done
 Message 2 → Wait → Process → Done
@@ -264,6 +276,7 @@ Message 3 → Wait → Process → Done
 ### ✅ Multi-Channel Ready
 
 Add Telegram by creating `telegram-client.js`:
+
 ```javascript
 // Write to queue
 fs.writeFileSync(
@@ -280,6 +293,7 @@ Queue processor handles it automatically!
 ### ✅ Clean Responses
 
 Uses `claude -c -p`:
+
 - `-c` = continue conversation
 - `-p` = print mode (clean output)
 - No tmux capture needed
@@ -287,6 +301,7 @@ Uses `claude -c -p`:
 ### ✅ Persistent Sessions
 
 WhatsApp session persists across restarts:
+
 ```bash
 # First time: Scan QR code
 ./tinyclaw.sh start
@@ -363,18 +378,10 @@ autostart=true
 autorestart=true
 ```
 
-## 📚 Documentation
-
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design details
-- **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - File organization
-- **[RESET_GUIDE.md](RESET_GUIDE.md)** - Reset command details
-- **[QUICKSTART.md](QUICKSTART.md)** - Step-by-step tutorial
-- **[INSTALL.md](INSTALL.md)** - Installation guide
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history
-
 ## 🎯 Use Cases
 
 ### Personal AI Assistant
+
 ```
 You: "Remind me to call mom"
 Claude: "I'll remind you!"
@@ -383,6 +390,7 @@ Claude: "Don't forget to call mom!"
 ```
 
 ### Code Helper
+
 ```
 You: "Review my code"
 Claude: [reads files, provides feedback]
@@ -391,10 +399,11 @@ Claude: [fixes and commits]
 ```
 
 ### Multi-Device
+
 - WhatsApp on phone
 - Telegram on desktop
 - CLI for scripts
-All share the same Claude conversation!
+  All share the same Claude conversation!
 
 ## 🙏 Credits
 
@@ -409,4 +418,3 @@ MIT
 ---
 
 **TinyClaw - Small but mighty!** 🦞✨
-
