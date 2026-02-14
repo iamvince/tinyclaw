@@ -113,22 +113,42 @@ export async function invokeAgent(
 
         return response || 'Sorry, I could not generate a response from Codex.';
     } else if (provider === 'opencode') {
-        // OpenCode CLI — non-interactive mode via -p flag.
-        // Permissions are auto-approved in non-interactive mode.
+        // OpenCode CLI — non-interactive mode via `opencode run`.
+        // Outputs JSONL with --format json; extract "text" type events for the response.
         // Model is configured via .opencode.json in the working directory, not CLI args.
-        // Note: -p mode does not support conversation continuation; each invocation is independent.
+        // Supports -c flag for conversation continuation (resumes last session).
         const modelDisplay = resolveOpenCodeModel(agent.model);
         log('INFO', `Using OpenCode CLI (agent: ${agentId}, model: ${modelDisplay})`);
 
-        if (!shouldReset) {
-            log('DEBUG', `OpenCode -p mode does not support conversation continuation; starting fresh (agent: ${agentId})`);
+        const continueConversation = !shouldReset;
+
+        if (shouldReset) {
+            log('INFO', `🔄 Resetting OpenCode conversation for agent: ${agentId}`);
         }
 
-        // -p: non-interactive prompt, -q: suppress spinner for scripting
-        const opencodeArgs = ['-p', message, '-q'];
+        const opencodeArgs = ['run', '--format', 'json'];
+        if (continueConversation) {
+            opencodeArgs.push('-c');
+        }
+        opencodeArgs.push(message);
 
-        const response = await runCommand('opencode', opencodeArgs, workingDir);
-        return response.trim() || 'Sorry, I could not generate a response from OpenCode.';
+        const opencodeOutput = await runCommand('opencode', opencodeArgs, workingDir);
+
+        // Parse JSONL output and collect all text parts
+        let response = '';
+        const lines = opencodeOutput.trim().split('\n');
+        for (const line of lines) {
+            try {
+                const json = JSON.parse(line);
+                if (json.type === 'text' && json.part?.text) {
+                    response = json.part.text;
+                }
+            } catch (e) {
+                // Ignore lines that aren't valid JSON
+            }
+        }
+
+        return response || 'Sorry, I could not generate a response from OpenCode.';
     } else {
         // Default to Claude (Anthropic)
         log('INFO', `Using Claude provider (agent: ${agentId})`);
