@@ -102,9 +102,8 @@ export function resolveCodexModel(model: string): string {
 }
 
 /**
- * Resolve the model ID for OpenCode.
- * OpenCode reads its model from .opencode.json, so this is a pass-through
- * used for display/logging purposes only.
+ * Resolve the model ID for OpenCode (passed via --model flag).
+ * Falls back to the raw model string from settings if no mapping is found.
  */
 export function resolveOpenCodeModel(model: string): string {
     return OPENCODE_MODEL_IDS[model] || model || '';
