@@ -1,6 +1,6 @@
 export interface AgentConfig {
     name: string;
-    provider: string;       // 'anthropic' or 'openai'
+    provider: string;       // 'anthropic', 'openai', or 'opencode'
     model: string;           // e.g. 'sonnet', 'opus', 'gpt-5.3-codex'
     working_directory: string;
 }
@@ -28,11 +28,14 @@ export interface Settings {
         whatsapp?: {};
     };
     models?: {
-        provider?: string; // 'anthropic' or 'openai'
+        provider?: string; // 'anthropic', 'openai', or 'opencode'
         anthropic?: {
             model?: string;
         };
         openai?: {
+            model?: string;
+        };
+        opencode?: {
             model?: string;
         };
     };
@@ -82,4 +85,13 @@ export const CLAUDE_MODEL_IDS: Record<string, string> = {
 export const CODEX_MODEL_IDS: Record<string, string> = {
     'gpt-5.2': 'gpt-5.2',
     'gpt-5.3-codex': 'gpt-5.3-codex',
+};
+
+// OpenCode model IDs — opencode reads its model from .opencode.json config,
+// so these are pass-through mappings used for display/logging only.
+export const OPENCODE_MODEL_IDS: Record<string, string> = {
+    'sonnet': 'claude-sonnet-4-5',
+    'opus': 'claude-opus-4-6',
+    'gpt-4o': 'gpt-4o',
+    'o3': 'o3',
 };

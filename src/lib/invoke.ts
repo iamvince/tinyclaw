@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { AgentConfig, TeamConfig } from './types';
-import { SCRIPT_DIR, resolveClaudeModel, resolveCodexModel } from './config';
+import { SCRIPT_DIR, resolveClaudeModel, resolveCodexModel, resolveOpenCodeModel } from './config';
 import { log } from './logging';
 import { ensureAgentDirectory, updateAgentTeammates } from './agent-setup';
 
@@ -112,6 +112,23 @@ export async function invokeAgent(
         }
 
         return response || 'Sorry, I could not generate a response from Codex.';
+    } else if (provider === 'opencode') {
+        // OpenCode CLI — non-interactive mode via -p flag.
+        // Permissions are auto-approved in non-interactive mode.
+        // Model is configured via .opencode.json in the working directory, not CLI args.
+        // Note: -p mode does not support conversation continuation; each invocation is independent.
+        const modelDisplay = resolveOpenCodeModel(agent.model);
+        log('INFO', `Using OpenCode CLI (agent: ${agentId}, model: ${modelDisplay})`);
+
+        if (!shouldReset) {
+            log('DEBUG', `OpenCode -p mode does not support conversation continuation; starting fresh (agent: ${agentId})`);
+        }
+
+        // -p: non-interactive prompt, -q: suppress spinner for scripting
+        const opencodeArgs = ['-p', message, '-q'];
+
+        const response = await runCommand('opencode', opencodeArgs, workingDir);
+        return response.trim() || 'Sorry, I could not generate a response from OpenCode.';
     } else {
         // Default to Claude (Anthropic)
         log('INFO', `Using Claude provider (agent: ${agentId})`);

@@ -107,9 +107,11 @@ agent_add() {
     echo "Provider:"
     echo "  1) Anthropic (Claude)"
     echo "  2) OpenAI (Codex)"
-    read -rp "Choose [1-2, default: 1]: " AGENT_PROVIDER_CHOICE
+    echo "  3) OpenCode"
+    read -rp "Choose [1-3, default: 1]: " AGENT_PROVIDER_CHOICE
     case "$AGENT_PROVIDER_CHOICE" in
         2) AGENT_PROVIDER="openai" ;;
+        3) AGENT_PROVIDER="opencode" ;;
         *) AGENT_PROVIDER="anthropic" ;;
     esac
 
@@ -122,6 +124,19 @@ agent_add() {
         read -rp "Choose [1-2, default: 1]: " AGENT_MODEL_CHOICE
         case "$AGENT_MODEL_CHOICE" in
             2) AGENT_MODEL="opus" ;;
+            *) AGENT_MODEL="sonnet" ;;
+        esac
+    elif [ "$AGENT_PROVIDER" = "opencode" ]; then
+        echo "Model (configured via .opencode.json in agent directory):"
+        echo "  1) Claude Sonnet"
+        echo "  2) Claude Opus"
+        echo "  3) GPT-4o"
+        echo "  4) o3"
+        read -rp "Choose [1-4, default: 1]: " AGENT_MODEL_CHOICE
+        case "$AGENT_MODEL_CHOICE" in
+            2) AGENT_MODEL="opus" ;;
+            3) AGENT_MODEL="gpt-4o" ;;
+            4) AGENT_MODEL="o3" ;;
             *) AGENT_MODEL="sonnet" ;;
         esac
     else

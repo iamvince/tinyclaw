@@ -83,12 +83,14 @@ echo "Which AI provider?"
 echo ""
 echo "  1) Anthropic (Claude)  (recommended)"
 echo "  2) OpenAI (Codex/GPT)"
+echo "  3) OpenCode"
 echo ""
-read -rp "Choose [1-2]: " PROVIDER_CHOICE
+read -rp "Choose [1-3]: " PROVIDER_CHOICE
 
 case "$PROVIDER_CHOICE" in
     1) PROVIDER="anthropic" ;;
     2) PROVIDER="openai" ;;
+    3) PROVIDER="opencode" ;;
     *)
         echo -e "${RED}Invalid choice${NC}"
         exit 1
@@ -115,6 +117,26 @@ if [ "$PROVIDER" = "anthropic" ]; then
             ;;
     esac
     echo -e "${GREEN}✓ Model: $MODEL${NC}"
+    echo ""
+elif [ "$PROVIDER" = "opencode" ]; then
+    # OpenCode reads model from .opencode.json; ask for a label
+    echo "OpenCode model (configured via .opencode.json in agent directory)?"
+    echo ""
+    echo "  1) Claude Sonnet"
+    echo "  2) Claude Opus"
+    echo "  3) GPT-4o"
+    echo "  4) o3"
+    echo ""
+    read -rp "Choose [1-4, default: 1]: " MODEL_CHOICE
+
+    case "$MODEL_CHOICE" in
+        2) MODEL="opus" ;;
+        3) MODEL="gpt-4o" ;;
+        4) MODEL="o3" ;;
+        *) MODEL="sonnet" ;;
+    esac
+    echo -e "${GREEN}✓ Model: $MODEL${NC}"
+    echo -e "${YELLOW}  Note: Set the actual model in .opencode.json in the agent's working directory.${NC}"
     echo ""
 else
     # OpenAI models
@@ -216,10 +238,11 @@ if [[ "$SETUP_AGENTS" =~ ^[yY] ]]; then
         read -rp "  Display name: " NEW_AGENT_NAME
         [ -z "$NEW_AGENT_NAME" ] && NEW_AGENT_NAME="$NEW_AGENT_ID"
 
-        echo "  Provider: 1) Anthropic  2) OpenAI"
-        read -rp "  Choose [1-2, default: 1]: " NEW_PROVIDER_CHOICE
+        echo "  Provider: 1) Anthropic  2) OpenAI  3) OpenCode"
+        read -rp "  Choose [1-3, default: 1]: " NEW_PROVIDER_CHOICE
         case "$NEW_PROVIDER_CHOICE" in
             2) NEW_PROVIDER="openai" ;;
+            3) NEW_PROVIDER="opencode" ;;
             *) NEW_PROVIDER="anthropic" ;;
         esac
 
@@ -228,6 +251,15 @@ if [[ "$SETUP_AGENTS" =~ ^[yY] ]]; then
             read -rp "  Choose [1-2, default: 1]: " NEW_MODEL_CHOICE
             case "$NEW_MODEL_CHOICE" in
                 2) NEW_MODEL="opus" ;;
+                *) NEW_MODEL="sonnet" ;;
+            esac
+        elif [ "$NEW_PROVIDER" = "opencode" ]; then
+            echo "  Model: 1) Claude Sonnet  2) Claude Opus  3) GPT-4o  4) o3"
+            read -rp "  Choose [1-4, default: 1]: " NEW_MODEL_CHOICE
+            case "$NEW_MODEL_CHOICE" in
+                2) NEW_MODEL="opus" ;;
+                3) NEW_MODEL="gpt-4o" ;;
+                4) NEW_MODEL="o3" ;;
                 *) NEW_MODEL="sonnet" ;;
             esac
         else
@@ -270,6 +302,8 @@ TELEGRAM_TOKEN="${TOKENS[telegram]:-}"
 # Use jq to build valid JSON to avoid escaping issues with agent prompts
 if [ "$PROVIDER" = "anthropic" ]; then
     MODELS_SECTION='"models": { "provider": "anthropic", "anthropic": { "model": "'"${MODEL}"'" } }'
+elif [ "$PROVIDER" = "opencode" ]; then
+    MODELS_SECTION='"models": { "provider": "opencode", "opencode": { "model": "'"${MODEL}"'" } }'
 else
     MODELS_SECTION='"models": { "provider": "openai", "openai": { "model": "'"${MODEL}"'" } }'
 fi
